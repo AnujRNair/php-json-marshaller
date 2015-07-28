@@ -1,0 +1,24 @@
+{
+    "name": "anujrnair/php-json-marshaller",
+    "description": "A library to marshall and unmarshall json strings to php classes",
+    "authors": [
+        {
+            "name": "Anuj Nair",
+            "email": "anuj.r.nair@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.4.0",
+        "doctrine/annotations" : "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.8.0"
+    },
+    "autoload": {
+        "psr-0": {
+            "PhpJsonMarshaller": "src/main/",
+            "PhpJsonMarshallerTest": "src/tests/"
+        }
+    }
+}
