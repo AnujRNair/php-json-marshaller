@@ -96,20 +96,20 @@ class ClassDecoderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(false, $result->canIgnoreUnknown());
 
         $this->assertEquals(true, $result->hasProperty('id'));
-        $this->assertEquals(true, $result->getProperty('id')->hasJsonName());
-        $this->assertEquals('id', $result->getProperty('id')->getJsonName());
-        $this->assertEquals(true, $result->getProperty('id')->hasJsonType());
-        $this->assertEquals('int', $result->getProperty('id')->getJsonType());
+        $this->assertEquals(true, $result->getProperty('id')->hasAnnotationName());
+        $this->assertEquals('id', $result->getProperty('id')->getAnnotationName());
+        $this->assertEquals(true, $result->getProperty('id')->hasAnnotationType());
+        $this->assertEquals('int', $result->getProperty('id')->getAnnotationType());
         $this->assertEquals('id', $result->getProperty('id')->getDirect());
         $this->assertEquals(true, $result->getProperty('id')->hasDirect());
         $this->assertEquals(false, $result->getProperty('id')->hasGetter());
         $this->assertEquals(false, $result->getProperty('id')->hasSetter());
 
         $this->assertEquals(true, $result->hasProperty('active'));
-        $this->assertEquals(true, $result->getProperty('active')->hasJsonName());
-        $this->assertEquals('active', $result->getProperty('active')->getJsonName());
-        $this->assertEquals(true, $result->getProperty('active')->hasJsonType());
-        $this->assertEquals('boolean', $result->getProperty('active')->getJsonType());
+        $this->assertEquals(true, $result->getProperty('active')->hasAnnotationName());
+        $this->assertEquals('active', $result->getProperty('active')->getAnnotationName());
+        $this->assertEquals(true, $result->getProperty('active')->hasAnnotationType());
+        $this->assertEquals('boolean', $result->getProperty('active')->getAnnotationType());
         $this->assertEquals(false, $result->getProperty('active')->hasDirect());
         $this->assertEquals(true, $result->getProperty('active')->hasGetter());
         $this->assertEquals(true, $result->getProperty('active')->hasSetter());
@@ -117,10 +117,10 @@ class ClassDecoderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('isActive', $result->getProperty('active')->getGetter());
 
         $this->assertEquals(true, $result->hasProperty('name'));
-        $this->assertEquals(true, $result->getProperty('name')->hasJsonName());
-        $this->assertEquals('name', $result->getProperty('name')->getJsonName());
-        $this->assertEquals(true, $result->getProperty('name')->hasJsonType());
-        $this->assertEquals('string', $result->getProperty('name')->getJsonType());
+        $this->assertEquals(true, $result->getProperty('name')->hasAnnotationName());
+        $this->assertEquals('name', $result->getProperty('name')->getAnnotationName());
+        $this->assertEquals(true, $result->getProperty('name')->hasAnnotationType());
+        $this->assertEquals('string', $result->getProperty('name')->getAnnotationType());
         $this->assertEquals(false, $result->getProperty('name')->hasDirect());
         $this->assertEquals(true, $result->getProperty('name')->hasGetter());
         $this->assertEquals(true, $result->getProperty('name')->hasSetter());

@@ -20,7 +20,6 @@
             <exclude>
                 <directory suffix=".php">./src/main/PhpJsonMarshaller/Annotations/</directory>
                 <directory suffix=".php">./src/main/PhpJsonMarshaller/Exception/</directory>
-                <directory suffix=".php">./src/main/PhpJsonMarshaller/Decoder/Object/</directory>
             </exclude>
         </whitelist>
     </filter>

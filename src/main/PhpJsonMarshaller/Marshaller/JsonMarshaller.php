@@ -3,15 +3,10 @@
 namespace PhpJsonMarshaller\Marshaller;
 
 use PhpJsonMarshaller\Decoder\ClassDecoder;
+use PhpJsonMarshaller\Decoder\Object\PropertyTypeObject;
 use PhpJsonMarshaller\Exception\InvalidTypeException;
 use PhpJsonMarshaller\Exception\JsonDecodeException;
 use PhpJsonMarshaller\Exception\UnknownPropertyException;
-use PhpJsonMarshaller\Type\BoolType;
-use PhpJsonMarshaller\Type\DateTimeType;
-use PhpJsonMarshaller\Type\FloatType;
-use PhpJsonMarshaller\Type\IntType;
-use PhpJsonMarshaller\Type\iType;
-use PhpJsonMarshaller\Type\StringType;
 
 /**
  * Marshall and Unmarshall a JSON string to and from a particular class
@@ -83,33 +78,32 @@ class JsonMarshaller
         }
 
         // Create a new class
-        // TODO: How about constructor arguments?
         $newClass = new $classString;
 
         foreach ($assocArray as $key => $value) {
 
-            // TODO: Magic Setter
             if ($decodedClass->hasProperty($key)) {
                 $result = null;
                 $property = $decodedClass->getProperty($key);
-                $type = $this->getType($property->getJsonType());
+                $propertyType = $property->getPropertyType();
 
-                if ($type instanceof iType) {
-                    $result = $type->decodeValue($value);
-                } elseif ($type === 'object') {
-                    $result = $this->unmarshallClass($value, $property->getJsonType());
-                } elseif ($type === 'array') {
-                    $rawArrayType = substr($property->getJsonType(), 0, strpos($property->getJsonType(), "["));
-                    $iArrayType = $this->getType($rawArrayType);
+                // Decode the value into our result
+                if ($propertyType->getType() === PropertyTypeObject::TYPE_PRIMITIVE) {
+                    $result = $propertyType->getValue()->decodeValue($value);
+                } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_OBJECT) {
+                    $result = $this->unmarshallClass($value, $propertyType->getValue());
+                } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_ARRAY) {
+                    $subPropertyType = $propertyType->getValue();
                     foreach ($value as $val) {
-                        if ($iArrayType instanceof iType) {
-                            $result[] = $iArrayType->decodeValue($val);
+                        if ($subPropertyType->getType() === PropertyTypeObject::TYPE_PRIMITIVE) {
+                            $result[] = $subPropertyType->getValue()->decodeValue($val);
                         } else {
-                            $result[] = $this->unmarshallClass($val, $rawArrayType);
+                            $result[] = $this->unmarshallClass($val, $subPropertyType->getValue());
                         }
                     }
                 }
 
+                // Set our result into the class
                 if ($property->hasDirect()) {
                     $newClass->{$property->getDirect()} = $result;
                 } elseif ($property->hasSetter()) {
@@ -126,47 +120,6 @@ class JsonMarshaller
         }
 
         return $newClass;
-    }
-
-    /**
-     * Returns a typed object from a string type
-     * @param string $type the type
-     * @return BoolType|DateTimeType|FloatType|IntType|StringType|string
-     * @throws InvalidTypeException
-     */
-    protected function getType($type)
-    {
-        // Remove leading slash, if any
-        $type = ltrim($type, '\\');
-        // Check for array
-        $pos = strrpos($type, '[');
-
-        if ($pos === false) {
-            switch (strtolower($type)) {
-                case 'integer':
-                case 'int':
-                    return new IntType();
-                case 'boolean':
-                case 'bool':
-                    return new BoolType();
-                case 'string':
-                    return new StringType();
-                case 'float':
-                    return new FloatType();
-                case 'datetime':
-                    return new DateTimeType();
-                default:
-                    // Guessing it's an object
-                    return 'object';
-            }
-        }
-
-        if ($type[$pos + 1] !== ']') {
-            throw new InvalidTypeException('Cannot nest a type inside of an array');
-        }
-
-        // guessing it's an array
-        return 'array';
     }
 
 }

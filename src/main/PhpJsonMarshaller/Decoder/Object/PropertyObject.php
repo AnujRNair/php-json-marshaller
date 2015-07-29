@@ -2,6 +2,14 @@
 
 namespace PhpJsonMarshaller\Decoder\Object;
 
+use PhpJsonMarshaller\Decoder\Object\PropertyTypeObject as PTO;
+use PhpJsonMarshaller\Exception\InvalidTypeException;
+use PhpJsonMarshaller\Type\DateTimeType;
+use PhpJsonMarshaller\Type\FloatType;
+use PhpJsonMarshaller\Type\StringType;
+use PhpJsonMarshaller\Type\BoolType;
+use PhpJsonMarshaller\Type\IntType;
+
 /**
  * Hold decoded information about a particular property
  * Class PropertyObject
@@ -12,15 +20,15 @@ class PropertyObject
 
     /**
      * The value from the name param in the MarshallProperty annotation
-     * @var string $jsonName
+     * @var string $annotationName
      */
-    protected $jsonName;
+    protected $annotationName;
 
     /**
      * The value from the type param in the MarshallProperty annotation
-     * @var string $jsonType
+     * @var string $annotationType
      */
-    protected $jsonType;
+    protected $annotationType;
 
     /**
      * The name of the property from the decoded class to allow direct getting/setting
@@ -41,79 +49,69 @@ class PropertyObject
     protected $setter = null;
 
     /**
-     * @param string $jsonName the value of the name param from the MarshallProperty annotation
-     * @param string $jsonType the value of the type param from the MarshallProperty annotation
+     * A PropertyTypeObject instance consisting of a const identifier, and a calculated variable type
+     * @var PropertyTypeObject $propertyType
+     */
+    protected $propertyType;
+
+    /**
+     * @param string $annotationName the value of the name param from the MarshallProperty annotation
+     * @param string $annotationType the value of the type param from the MarshallProperty annotation
      * @param string $direct the name of the property from the decoded class to allow direct getting/setting
      * @param string $getter the name of the method from the decoded class to use as a getter
      * @param string $setter the name of the method from the decoded class to user as a setter
      */
     public function __construct(
-        $jsonName = null,
-        $jsonType = null,
+        $annotationName,
+        $annotationType,
         $direct = null,
         $getter = null,
         $setter = null
     )
     {
-        $this->jsonName = $jsonName;
-        $this->jsonType = $jsonType;
+        $this->annotationName = $annotationName;
+        $this->annotationType = $annotationType;
         $this->direct = $direct;
         $this->getter = $getter;
         $this->setter = $setter;
+
+        $this->propertyType = $this->createType($this->annotationType);
     }
 
     /**
-     * Returns boolean on whether the json name has been set
+     * Returns boolean on whether the annotation name param has been set
      * @return bool
      */
-    public function hasJsonName()
+    public function hasAnnotationName()
     {
-        return $this->jsonName !== null;
+        return $this->annotationName !== null;
     }
 
     /**
-     * Returns the json name
+     * Returns the annotation name param
      * @return string
      */
-    public function getJsonName()
+    public function getAnnotationName()
     {
-        return $this->jsonName;
+        return $this->annotationName;
     }
 
     /**
-     * Sets the json name
-     * @param string $jsonName
-     */
-    public function setJsonName($jsonName)
-    {
-        $this->jsonName = $jsonName;
-    }
-
-    /**
-     * Returns boolean on whether the json type has been set
+     * Returns boolean on whether the annotation type param has been set
      * @return bool
      */
-    public function hasJsonType()
+    public function hasAnnotationType()
     {
-        return $this->jsonType !== null;
+        return $this->annotationType !== null;
     }
 
     /**
-     * Returns the json type
+     * Returns the annotation type param
      * @return string
      */
-    public function getJsonType()
+    public function getAnnotationType()
     {
-        return $this->jsonType;
-    }
-
-    /**
-     * Sets the json type
-     * @param string $jsonType
-     */
-    public function setJsonType($jsonType)
-    {
-        $this->jsonType = $jsonType;
+        return $this->annotationType;
     }
 
     /**
@@ -195,5 +193,55 @@ class PropertyObject
     public function setSetter($setter)
     {
         $this->setter = $setter;
+    }
+
+    /**
+     * Gets the type of this Property
+     * @return PropertyTypeObject
+     */
+    public function getPropertyType()
+    {
+        return $this->propertyType;
+    }
+
+    /**
+     * Creates a descriptor and a typed object from a string type
+     * @param string $type the type
+     * @return array(PropertyTypeObject::TYPE_, iType)
+     * @throws InvalidTypeException
+     */
+    protected function createType($type)
+    {
+        // Remove leading slash, if any
+        $type = ltrim($type, '\\');
+        // Check for array
+        $pos = strrpos($type, '[');
+
+        if ($pos === false) {
+            switch (strtolower($type)) {
+                case 'integer':
+                case 'int':
+                    return new PTO(PTO::TYPE_PRIMITIVE, new IntType());
+                case 'boolean':
+                case 'bool':
+                    return new PTO(PTO::TYPE_PRIMITIVE, new BoolType());
+                case 'string':
+                    return new PTO(PTO::TYPE_PRIMITIVE, new StringType());
+                case 'float':
+                    return new PTO(PTO::TYPE_PRIMITIVE, new FloatType());
+                case 'datetime':
+                    return new PTO(PTO::TYPE_PRIMITIVE, new DateTimeType());
+                default:
+                    // Guessing it's an object
+                    return new PTO(PTO::TYPE_OBJECT, $type);
+            }
+        }
+
+        if ($type[$pos + 1] !== ']') {
+            throw new InvalidTypeException('Cannot nest a type inside of an array');
+        }
+
+        // guessing it's an array
+        return new PTO(PTO::TYPE_ARRAY, $this->createType(substr($type, 0, strpos($type, '['))));
     }
 }
