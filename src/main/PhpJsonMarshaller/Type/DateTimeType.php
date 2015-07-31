@@ -11,6 +11,8 @@ use PhpJsonMarshaller\Exception\InvalidTypeException;
 class DateTimeType implements iType
 {
 
+    protected $format = 'c';
+
     /**
      * Attempts to decode a mixed value into a \DateTime
      * @param mixed $value
@@ -20,10 +22,7 @@ class DateTimeType implements iType
     public function decodeValue($value)
     {
         if (!is_string($value)) {
-            if (is_object($value) || is_array($value)) {
-                throw new InvalidTypeException("Cannot decode Array/Object into a DateTime");
-            }
-            throw new InvalidTypeException("Value '$value' could not be decoded into a DateTime");
+            throw new InvalidTypeException("Expected DateTime compatible string but received " . gettype($value));
         }
         try {
             $retVal = new \DateTime($value);
@@ -32,7 +31,21 @@ class DateTimeType implements iType
             }
         } catch (\Exception $e) {
         }
-        throw new InvalidTypeException("Value '$value' could not be decoded into a DateTime");
+        throw new InvalidTypeException("Expected DateTime compatible string but received " . gettype($value));
+    }
+
+    /**
+     * Attempts to encode a DateTime
+     * @param \DateTime $value
+     * @return string
+     * @throws InvalidTypeException
+     */
+    public function encodeValue($value)
+    {
+        if (!$value instanceof \DateTime) {
+            throw new InvalidTypeException("Expected DateTime but received " . gettype($value));
+        }
+        return $value->format($this->format);
     }
 
 }

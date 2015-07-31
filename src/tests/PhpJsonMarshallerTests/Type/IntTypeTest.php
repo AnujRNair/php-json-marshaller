@@ -20,12 +20,12 @@ class IntTypeTest extends \PHPUnit_Framework_TestCase
      */
     public function provideValidData()
     {
-        return array(
-            array(1, 1),
-            array(-10, -10),
-            array(0, 0),
-            array(1.0, 1)
-        );
+        return [
+            [1, 1],
+            [-10, -10],
+            [0, 0],
+            [1.0, 1]
+        ];
     }
 
     /**
@@ -33,14 +33,14 @@ class IntTypeTest extends \PHPUnit_Framework_TestCase
      */
     public function provideInvalidData()
     {
-        return array(
-            array(true),
-            array(1.1),
-            array('InvalidString'),
-            array(array()),
-            array(new \StdClass()),
-            array(null)
-        );
+        return [
+            [true],
+            [1.1],
+            ['InvalidString'],
+            [[]],
+            [new \StdClass()],
+            [null]
+        ];
     }
 
     /**
@@ -51,7 +51,7 @@ class IntTypeTest extends \PHPUnit_Framework_TestCase
     public function testValidDecodes($input, $expected)
     {
         $result = $this->intType->decodeValue($input);
-        $this->assertSame($expected, $result, 'Valid input not decoded into an Integer');
+        $this->assertSame($expected, $result, 'Valid input not decoded into an integer');
     }
 
     /**
@@ -62,6 +62,27 @@ class IntTypeTest extends \PHPUnit_Framework_TestCase
     public function testInvalidDecodes($input)
     {
         $this->intType->decodeValue($input);
+    }
+
+    /**
+     * @dataProvider provideValidData
+     * @param $input
+     * @param $expected
+     */
+    public function testValidEncodes($input, $expected)
+    {
+        $result = $this->intType->encodeValue($input);
+        $this->assertSame($expected, $result, 'Valid input not encoded into an integer');
+    }
+
+    /**
+     * @dataProvider provideInvalidData
+     * @param $input
+     * @expectedException \PhpJsonMarshaller\Exception\InvalidTypeException
+     */
+    public function testInvalidEncodes($input)
+    {
+        $this->intType->encodeValue($input);
     }
 
 }

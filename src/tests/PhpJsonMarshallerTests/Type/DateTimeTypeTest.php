@@ -20,12 +20,12 @@ class DateTimeTypeTest extends \PHPUnit_Framework_TestCase
      */
     public function provideValidData()
     {
-        return array(
-            array('2015-01-01', new \DateTime('2015-01-01')),
-            array('2015-01-01 12:12:12', new \DateTime('2015-01-01 12:12:12')),
-            array('2004-02-12T15:19:21+00:00', new \DateTime('2004-02-12T15:19:21+00:00')),
-            array('Thu, 21 Dec 2000 16:01:07 +0200', new \DateTime('Thu, 21 Dec 2000 16:01:07 +0200'))
-        );
+        return [
+            ['2015-01-01', new \DateTime('2015-01-01')],
+            ['2015-01-01 12:12:12', new \DateTime('2015-01-01 12:12:12')],
+            ['2004-02-12T15:19:21+00:00', new \DateTime('2004-02-12T15:19:21+00:00')],
+            ['Thu, 21 Dec 2000 16:01:07 +0200', new \DateTime('Thu, 21 Dec 2000 16:01:07 +0200')]
+        ];
     }
 
     /**
@@ -33,16 +33,16 @@ class DateTimeTypeTest extends \PHPUnit_Framework_TestCase
      */
     public function provideInvalidData()
     {
-        return array(
-            array(true),
-            array(1),
-            array(1.1),
-            array('InvalidString'),
-            array('1388605953000'),
-            array(array()),
-            array(new \StdClass()),
-            array(null)
-        );
+        return [
+            [true],
+            [1],
+            [1.1],
+            ['InvalidString'],
+            ['1388605953000'],
+            [[]],
+            [new \StdClass()],
+            [null]
+        ];
     }
 
     /**
@@ -64,6 +64,23 @@ class DateTimeTypeTest extends \PHPUnit_Framework_TestCase
     public function testInvalidDecodes($input)
     {
         $this->dateTimeType->decodeValue($input);
+    }
+
+    public function testValidEncode()
+    {
+        $dateTime = new \DateTime('2015-01-01 12:12:12');
+        $result = $this->dateTimeType->encodeValue($dateTime);
+        $this->assertEquals($dateTime->format('c'), $result, 'Valid input not encoded into a \DateTime');
+    }
+
+    /**
+     * @dataProvider provideInvalidData
+     * @param $input
+     * @expectedException \PhpJsonMarshaller\Exception\InvalidTypeException
+     */
+    public function testInvalidEncodes($input)
+    {
+        $this->dateTimeType->encodeValue($input);
     }
 
 }

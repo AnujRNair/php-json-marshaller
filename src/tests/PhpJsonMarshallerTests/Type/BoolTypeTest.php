@@ -18,16 +18,29 @@ class BoolTypeTest extends \PHPUnit_Framework_TestCase
     /**
      * @return array
      */
-    public function provideValidData()
+    public function provideValidDecodeData()
     {
-        return array(
-            array(true, true),
-            array(false, false),
-            array('true', true),
-            array('false', false),
-            array(1, true),
-            array(0, false)
-        );
+        return [
+            [true, true],
+            [false, false],
+            ['true', true],
+            ['false', false],
+            [1, true],
+            [0, false]
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function provideValidEncodeData()
+    {
+        return [
+            [true, true],
+            [false, false],
+            [1, true],
+            [0, false]
+        ];
     }
 
     /**
@@ -35,19 +48,19 @@ class BoolTypeTest extends \PHPUnit_Framework_TestCase
      */
     public function provideInvalidData()
     {
-        return array(
-            array('InvalidString'),
-            array(2),
-            array('1'),
-            array(3.4),
-            array(new \DateTime('2015-01-01 12:12:12')),
-            array(array()),
-            array(null)
-        );
+        return [
+            ['InvalidString'],
+            [2],
+            ['1'],
+            [3.4],
+            [new \DateTime('2015-01-01 12:12:12')],
+            [[]],
+            [null]
+        ];
     }
 
     /**
-     * @dataProvider provideValidData
+     * @dataProvider provideValidDecodeData
      * @param $input
      * @param $expected
      */
@@ -65,6 +78,27 @@ class BoolTypeTest extends \PHPUnit_Framework_TestCase
     public function testInvalidDecodes($input)
     {
         $this->boolType->decodeValue($input);
+    }
+
+    /**
+     * @dataProvider provideValidEncodeData
+     * @param $input
+     * @param $expected
+     */
+    public function testValidEncodes($input, $expected)
+    {
+        $result = $this->boolType->encodeValue($input);
+        $this->assertSame($expected, $result, 'Valid input not encoded into a boolean');
+    }
+
+    /**
+     * @dataProvider provideInvalidData
+     * @param mixed $input
+     * @expectedException \PhpJsonMarshaller\Exception\InvalidTypeException
+     */
+    public function testInvalidEncodes($input)
+    {
+        $this->boolType->encodeValue($input);
     }
 
 }

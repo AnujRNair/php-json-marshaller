@@ -23,15 +23,22 @@ class StringType implements iType
             return $value;
         }
         if (is_object($value) && !method_exists($value, '__toString')) {
-            throw new InvalidTypeException('Cannot convert an Object to a String without a toString method');
+            throw new InvalidTypeException('Expected string but received object with no __toString method');
         }
         if (is_array($value)) {
             return json_encode($value);
         }
-        if (is_bool($value)) {
-            return ($value ? 'true' : 'false');
-        }
         return (string)('' . $value);
+    }
+
+    public function encodeValue($value)
+    {
+        try {
+            $result = (string)('' . $value);
+        } catch (\Exception $e) {
+            throw new InvalidTypeException("Could not encode " . gettype($value) . " to a string");
+        }
+        return $result;
     }
 
 }

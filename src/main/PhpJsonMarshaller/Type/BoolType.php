@@ -23,7 +23,7 @@ class BoolType implements iType
             return $value;
         }
         if (is_object($value) || is_array($value)) {
-            throw new InvalidTypeException("Cannot decode Array/Object into a Boolean");
+            throw new InvalidTypeException("Expected boolean but received " . gettype($value));
         }
         if ($value === 'true' || $value === 1) {
             return true;
@@ -31,7 +31,21 @@ class BoolType implements iType
         if ($value === 'false' || $value === 0) {
             return false;
         }
-        throw new InvalidTypeException("Value '$value' could not be decoded into a Boolean");
+        throw new InvalidTypeException("Expected boolean but received " . gettype($value));
+    }
+
+    /**
+     * Attempts to encode a boolean
+     * @param boolean $value
+     * @return string
+     * @throws InvalidTypeException
+     */
+    public function encodeValue($value)
+    {
+        if (!(is_bool($value) || $value === 0 || $value === 1)) {
+            throw new InvalidTypeException("Expected boolean but received " . gettype($value));
+        }
+        return !!$value;
     }
 
 }

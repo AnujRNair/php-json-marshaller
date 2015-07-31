@@ -18,49 +18,97 @@ class StringTypeTest extends \PHPUnit_Framework_TestCase
     /**
      * @return array
      */
-    public function provideValidData()
+    public function provideValidDecodeData()
     {
-        return array(
-            array('', ''),
-            array('This is a string', 'This is a string'),
-            array(true, 'true'),
-            array('1', '1'),
-            array(1, '1'),
-            array(null, ''),
-            array(array('one' => 'two'), '{"one":"two"}'),
-            array(new classWithToStringMethod(), 'Converted to string!')
-        );
+        return [
+            ['', ''],
+            ['This is a string', 'This is a string'],
+            [true, '1'],
+            ['1', '1'],
+            [1, '1'],
+            [null, ''],
+            [['one' => 'two'], '{"one":"two"}'],
+            [new classWithToStringMethod(), 'Converted to string!']
+        ];
     }
 
     /**
      * @return array
      */
-    public function provideInvalidData()
+    public function provideInvalidDecodeData()
     {
-        return array(
-            array(new \StdClass())
-        );
+        return [
+            [new \StdClass()]
+        ];
     }
 
     /**
-     * @dataProvider provideValidData
+     * @return array
+     */
+    public function provideValidEncodeData()
+    {
+        return [
+            ['', ''],
+            ['This is a string', 'This is a string'],
+            [true, '1'],
+            ['1', '1'],
+            [1, '1'],
+            [null, ''],
+            [new classWithToStringMethod(), 'Converted to string!']
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function provideInvalidEncodeData()
+    {
+        return [
+            [new \StdClass()],
+            [['one' => 'two']]
+        ];
+    }
+
+    /**
+     * @dataProvider provideValidDecodeData
      * @param $input
      * @param $expected
      */
     public function testValidDecodes($input, $expected)
     {
         $result = $this->stringType->decodeValue($input);
-        $this->assertSame($expected, $result, 'Valid input not decoded into a String');
+        $this->assertSame($expected, $result, 'Valid input not decoded into a string');
     }
 
     /**
-     * @dataProvider provideInvalidData
+     * @dataProvider provideInvalidDecodeData
      * @param $input
      * @expectedException \PhpJsonMarshaller\Exception\InvalidTypeException
      */
     public function testInvalidDecodes($input)
     {
         $this->stringType->decodeValue($input);
+    }
+
+    /**
+     * @dataProvider provideValidEncodeData
+     * @param $input
+     * @param $expected
+     */
+    public function testValidEncodes($input, $expected)
+    {
+        $result = $this->stringType->encodeValue($input);
+        $this->assertSame($expected, $result, 'Valid input not encoded into a string');
+    }
+
+    /**
+     * @dataProvider provideInvalidEncodeData
+     * @param $input
+     * @expectedException \PhpJsonMarshaller\Exception\InvalidTypeException
+     */
+    public function testInvalidEncodes($input)
+    {
+        $this->stringType->encodeValue($input);
     }
 
 }

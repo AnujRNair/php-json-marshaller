@@ -1,4 +1,3 @@
- - Marshall function
  - Constructor Arguments
  - Magic getter / setter
  - Caching of decoded classes

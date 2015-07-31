@@ -3,9 +3,9 @@ PHP JSON Marshaller
 
 A library to marshall and unmarshall JSON strings to populated PHP classes, driven by annotations.
 
-We would like fine grain control because:
-* json_decode always returns a StdClass object. We want to be able to decode into our own objects.
-* We can add expected type information about the data we are receiving and validate it before using it.
+We would like fine grain control over our marshalling and unmarshalling because:
+* json_decode always returns a StdClass object. We want to be able to decode into our own classes.
+* We can add expected type information about the data we are receiving/sending and validate it before using it.
 * json_encode cannot be controlled on a property by property basis. This will allow us to do that.
 
 The latest version can be found here: https://github.com/AnujRNair/php-json-marshaller
@@ -72,15 +72,25 @@ $json = '{
 $marshaller = new JsonMarshaller(new ClassDecoder(new DoctrineAnnotationReader()));
 
 // Notice the fully qualified namespace!
-$user = $this->marshaller->unmarshall($json, '\My\Example\User');
+$user = $marshaller->unmarshall($json, '\My\Example\User');
+
+// Use the new class
+echo $user->getName(); // (string) 'Anuj'
+
+// Marshall the class
+$marshalled = $marshaller->marshall($user);
+
+// $json and $marshalled are both json_encoded string holding the same data
+$json == $marshalled;
 ```
 
 The `$user` variable should now be an instance of the `\My\Example\User` class, and be populated with the id and name we passed in from the JSON string
+The `$marshalled` variable will be a json encoded string holding data from the `\My\Example\User` object.
 
 Nesting Objects
 -------------------
 
-You can also nest classes within classes for recursive unmarshalling like so:
+You can also nest classes within classes for recursive marshalling and unmarshalling like so:
 
 ```php
 class User
@@ -111,7 +121,7 @@ $json = '{
 $marshaller = new JsonMarshaller(new ClassDecoder(new DoctrineAnnotationReader()));
 
 // Notice the fully qualified namespace!
-$user = $this->marshaller->unmarshall($json, '\My\Example\User');
+$user = $marshaller->unmarshall($json, '\My\Example\User');
 ```
 
 Arrays of Objects
@@ -154,7 +164,10 @@ $json = '{
 $marshaller = new JsonMarshaller(new ClassDecoder(new DoctrineAnnotationReader()));
 
 // Notice the fully qualified namespace!
-$user = $this->marshaller->unmarshall($json, '\My\Example\User');
+$user = $marshaller->unmarshall($json, '\My\Example\User');
+
+// Use the data
+$user->getFlags()[0]->getId(); // (int) 11087
 ```
 
 Unknown Entries

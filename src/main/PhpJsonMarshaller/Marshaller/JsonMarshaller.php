@@ -34,6 +34,72 @@ class JsonMarshaller
     }
 
     /**
+     * Marshall an object into a json string
+     * @param mixed $class the class object to marshall
+     * @return string the json string
+     * @throws JsonDecodeException
+     */
+    public function marshall($class)
+    {
+        return $this->marshallClass($class, true);
+    }
+
+    /**
+     * Recursive function to marshall a class into a json string (encoded) or an array (not encoded)
+     * @param mixed $class the class to marshall
+     * @param boolean $encode whether to json encode the result or not
+     * @return array|string
+     * @throws JsonDecodeException
+     * @throws \PhpJsonMarshaller\Exception\ClassNotFoundException
+     */
+    protected function marshallClass($class, $encode)
+    {
+        if (!is_object($class) || false === ($classString = get_class($class))) {
+            throw new JsonDecodeException("Class does not exist");
+        }
+
+        // Decode the class and it's properties
+        $decodedClass = $this->classDecoder->decodeClass($classString);
+        if (count($decodedClass->getProperties()) == 0) {
+            throw new \InvalidArgumentException("Class $classString doesn't have any @MarshallProperty annotations defined");
+        }
+
+        $result = [];
+
+        foreach ($decodedClass->getProperties() as $property) {
+            $value = null;
+            $propertyType = $property->getPropertyType();
+
+            // Get the value from the class
+            if ($property->hasDirect()) {
+                $value = $class->{$property->getDirect()};
+            } elseif ($property->hasGetter()) {
+                $value = $class->{$property->getGetter()}();
+            }
+
+            // Encode it into our json result
+            if ($propertyType->getType() === PropertyTypeObject::TYPE_PRIMITIVE) {
+                $result[$property->getAnnotationName()] = $propertyType->getValue()->encodeValue($value);
+            } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_OBJECT) {
+                $result[$property->getAnnotationName()] = $this->marshallClass($value, false);
+            } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_ARRAY) {
+                $subResult = [];
+                $subPropertyType = $propertyType->getValue();
+                foreach ($value as $val) {
+                    if ($subPropertyType->getType() === PropertyTypeObject::TYPE_PRIMITIVE) {
+                        $subResult[] = $subPropertyType->getValue()->encodeValue($val);
+                    } else {
+                        $subResult[] = $this->marshallClass($val, false);
+                    }
+                }
+                $result[$property->getAnnotationName()] = $subResult;
+            }
+        }
+
+        return ($encode ? json_encode($result) : $result);
+    }
+
+    /**
      * UnMarshall a json string into a PHP class
      * @param string $string the json string
      * @param string $classString a fully qualified namespaced class for the json to be inserted into
