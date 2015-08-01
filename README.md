@@ -8,7 +8,7 @@ We would like fine grain control over our marshalling and unmarshalling because:
 * We can add expected type information about the data we are receiving/sending and validate it before using it.
 * json_encode cannot be controlled on a property by property basis. This will allow us to do that.
 
-The latest version can be found here: https://github.com/AnujRNair/php-json-marshaller
+The latest version can be found here: https://github.com/AnujRNair/php-json-marshaller.
 
 Installation
 -------------------
@@ -20,7 +20,8 @@ Usage
 -------------------
 
 In your classes, add MarshallProperty annotations to your properties and methods to describe how JSON should be marshalled or unmarshalled.
-The MarshallProperty annotation requires a name and type, otherwise an exception will be thrown
+
+The MarshallProperty annotation requires a name and type, otherwise an exception will be thrown.
 
 You can do this on any public property or method.
 
@@ -84,8 +85,9 @@ $marshalled = $marshaller->marshall($user);
 $json == $marshalled;
 ```
 
-The `$user` variable should now be an instance of the `\My\Example\User` class, and be populated with the id and name we passed in from the JSON string
-The `$marshalled` variable will be a json encoded string holding data from the `\My\Example\User` object.
+The `$user` variable should now be an instance of the `\My\Example\User` class, and be populated with the id and name we passed in from the JSON string.
+
+The `$marshalled` variable will be a json encoded string holding data from the `\My\Example\User` object instance.
 
 Nesting Objects
 -------------------
@@ -122,6 +124,9 @@ $marshaller = new JsonMarshaller(new ClassDecoder(new DoctrineAnnotationReader()
 
 // Notice the fully qualified namespace!
 $user = $marshaller->unmarshall($json, '\My\Example\User');
+
+// Use the nested object
+$user->getAddress()->getStreet(); // (string) "123 Main Street"
 ```
 
 Arrays of Objects
@@ -170,6 +175,26 @@ $user = $marshaller->unmarshall($json, '\My\Example\User');
 $user->getFlags()[0]->getId(); // (int) 11087
 ```
 
+Caching
+-------------------
+
+You can cache decoded classes for performance boosts. This will _not_ cache data from JSON strings.
+
+To do so, instantiate an instance of the `Cache` class, and pass in a storage type. Then pass this through to the `ClassDecoder` instance:
+
+```php
+$marshaller = new JsonMarshaller(
+    new ClassDecoder(
+        new DoctrineAnnotationReader(),
+        new Cache(
+            new InMemoryStorage()
+        )
+    )
+);
+```
+
+See `\PhpJsonMarshaller\Cache\Storage` for all storage types available. `MemcachedStorage` has a few options you can set as well.
+
 Unknown Entries
 -------------------
 
@@ -187,7 +212,14 @@ class User
 
 Now if you try unmarshalling an unknown variable into this class, an exception will be thrown.
 
+Tests
+-------------------
+
+Testing is covered by PHPUnit. Browse to the root of the library and run `phpunit`.
+
+Please ensure you have the memcached daemon running to ensure the `MemcachedStorageTest` tests pass.
+
 License
 -------------------
 
-Feel free to use wherever, however
+Feel free to use wherever, however.

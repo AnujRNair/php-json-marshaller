@@ -2,6 +2,8 @@
 
 namespace PhpJsonMarshallerTests\Marshaller;
 
+use PhpJsonMarshaller\Cache\Cache;
+use PhpJsonMarshaller\Cache\Storage\InMemoryStorage;
 use PhpJsonMarshaller\Decoder\ClassDecoder;
 use PhpJsonMarshaller\Marshaller\JsonMarshaller;
 use PhpJsonMarshaller\Reader\DoctrineAnnotationReader;
@@ -25,7 +27,14 @@ class JsonMarshallerTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->marshaller = new JsonMarshaller(new ClassDecoder(new DoctrineAnnotationReader()));
+        $this->marshaller = new JsonMarshaller(
+            new ClassDecoder(
+                new DoctrineAnnotationReader(),
+                new Cache(
+                    new InMemoryStorage()
+                )
+            )
+        );
         $this->basicKeyValue = file_get_contents(__DIR__ . '/../ExampleJson/BasicKeyValue.json');
         $this->complexKeyValueArrayObject = file_get_contents(__DIR__ . '/../ExampleJson/ComplexKeyValueArrayObject.json');
     }
@@ -88,7 +97,7 @@ class JsonMarshallerTest extends \PHPUnit_Framework_TestCase
      */
     public function testUnmarshallFailOnUnknownIfIgnoreUnknownFalse()
     {
-        $this->marshaller->unmarshall($this->complexKeyValueArrayObject, 'PhpJsonMarshallerTests\ExampleClass\ClassComplete');
+        $this->marshaller->unmarshall($this->complexKeyValueArrayObject, 'PhpJsonMarshallerTests\ExampleClass\ClassCannotIgnoreUnknown');
     }
 
     /**

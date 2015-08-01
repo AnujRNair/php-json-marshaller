@@ -9,7 +9,7 @@ use PhpJsonMarshaller\Annotations\MarshallProperty;
  * A class where nothing can be ignored
  * @MarshallConfig(ignoreUnknown=false)
  */
-class ClassComplete
+class ClassCannotIgnoreUnknown
 {
 
     /**

@@ -4,6 +4,7 @@ namespace PhpJsonMarshaller\Decoder;
 
 use PhpJsonMarshaller\Annotations\MarshallConfig;
 use PhpJsonMarshaller\Annotations\MarshallProperty;
+use PhpJsonMarshaller\Cache\Cache;
 use PhpJsonMarshaller\Decoder\Object\ClassObject;
 use PhpJsonMarshaller\Decoder\Object\PropertyObject;
 use PhpJsonMarshaller\Exception\ClassNotFoundException;
@@ -25,13 +26,24 @@ class ClassDecoder
      */
     protected $reader;
 
+    /**
+     * A class to cache decoded class objects
+     * @var Cache $cache
+     */
+    protected $cache;
+
 
     /**
      * @param DoctrineAnnotationReader $reader A reader to read annotations
+     * @param Cache $cache
      */
-    public function __construct(DoctrineAnnotationReader $reader)
+    public function __construct(
+        DoctrineAnnotationReader $reader,
+        Cache $cache = null
+    )
     {
         $this->reader = $reader;
+        $this->cache = $cache;
     }
 
     /**
@@ -44,6 +56,13 @@ class ClassDecoder
     {
         if (!class_exists($classString)) {
             throw new ClassNotFoundException("Class with name: '$classString' not found");
+        }
+
+        // Check the cache first and return if it exists
+        if ($this->cache !== null) {
+            if (false !== ($cachedClassObject = $this->cache->getClass($classString))) {
+                return $cachedClassObject;
+            }
         }
 
         /** @var PropertyObject[] $properties */
@@ -64,6 +83,11 @@ class ClassDecoder
             $this->decodeProperty($property, $properties);
         }
         $classObject->setProperties($properties);
+
+        // Set in the cache
+        if ($this->cache !== null) {
+            $this->cache->setClass($classString, $classObject);
+        }
 
         // Return Object
         return $classObject;

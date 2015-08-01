@@ -90,7 +90,7 @@ class ClassDecoderTest extends \PHPUnit_Framework_TestCase
      */
     public function testClassSuccessfulDecode()
     {
-        $result = $this->decoder->decodeClass('\PhpJsonMarshallerTests\ExampleClass\ClassComplete');
+        $result = $this->decoder->decodeClass('\PhpJsonMarshallerTests\ExampleClass\ClassCannotIgnoreUnknown');
 
         $this->assertEquals(3, count($result->getProperties()));
         $this->assertEquals(false, $result->canIgnoreUnknown());
