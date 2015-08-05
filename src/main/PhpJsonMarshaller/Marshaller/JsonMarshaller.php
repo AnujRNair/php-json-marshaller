@@ -3,6 +3,7 @@
 namespace PhpJsonMarshaller\Marshaller;
 
 use PhpJsonMarshaller\Decoder\ClassDecoder;
+use PhpJsonMarshaller\Decoder\Object\ClassObject;
 use PhpJsonMarshaller\Decoder\Object\PropertyTypeObject;
 use PhpJsonMarshaller\Exception\InvalidTypeException;
 use PhpJsonMarshaller\Exception\JsonDecodeException;
@@ -78,25 +79,40 @@ class JsonMarshaller
             }
 
             // Encode it into our json result
-            if ($propertyType->getType() === PropertyTypeObject::TYPE_PRIMITIVE) {
-                $result[$property->getAnnotationName()] = $propertyType->getValue()->encodeValue($value);
-            } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_OBJECT) {
-                $result[$property->getAnnotationName()] = $this->marshallClass($value, false);
-            } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_ARRAY) {
-                $subResult = [];
-                $subPropertyType = $propertyType->getValue();
-                foreach ($value as $val) {
-                    if ($subPropertyType->getType() === PropertyTypeObject::TYPE_PRIMITIVE) {
-                        $subResult[] = $subPropertyType->getValue()->encodeValue($val);
-                    } else {
-                        $subResult[] = $this->marshallClass($val, false);
-                    }
-                }
-                $result[$property->getAnnotationName()] = $subResult;
-            }
+            $result[$property->getAnnotationName()] = $this->encodeValue($value, $propertyType);
         }
 
         return ($encode ? json_encode($result) : $result);
+    }
+
+    /**
+     * Encode a value into it's expected type
+     * @param mixed $value
+     * @param PropertyTypeObject $propertyType
+     * @return array|mixed|null
+     */
+    protected function encodeValue($value, PropertyTypeObject $propertyType)
+    {
+        $result = null;
+
+        if ($propertyType->getType() === PropertyTypeObject::TYPE_SCALAR) {
+            $result = $propertyType->getValue()->encodeValue($value);
+        } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_OBJECT) {
+            $result = $this->marshallClass($value, false);
+        } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_ARRAY) {
+            $subResult = [];
+            $subPropertyType = $propertyType->getValue();
+            foreach ($value as $val) {
+                if ($subPropertyType->getType() === PropertyTypeObject::TYPE_SCALAR) {
+                    $subResult[] = $subPropertyType->getValue()->encodeValue($val);
+                } else {
+                    $subResult[] = $this->marshallClass($val, false);
+                }
+            }
+            $result = $subResult;
+        }
+
+        return $result;
     }
 
     /**
@@ -139,35 +155,21 @@ class JsonMarshaller
     {
         // Decode the class and it's properties
         $decodedClass = $this->classDecoder->decodeClass($classString);
-        if (count($decodedClass->getProperties()) == 0) {
+        if (count($decodedClass->getProperties()) == 0 && count($decodedClass->getConstructorParams()) === 0) {
             throw new \InvalidArgumentException("Class $classString doesn't have any @MarshallProperty annotations defined");
         }
 
         // Create a new class
-        $newClass = new $classString;
+        $newClass = $this->createClass($classString, $decodedClass, $assocArray);
 
         foreach ($assocArray as $key => $value) {
 
             if ($decodedClass->hasProperty($key)) {
-                $result = null;
                 $property = $decodedClass->getProperty($key);
                 $propertyType = $property->getPropertyType();
 
-                // Decode the value into our result
-                if ($propertyType->getType() === PropertyTypeObject::TYPE_PRIMITIVE) {
-                    $result = $propertyType->getValue()->decodeValue($value);
-                } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_OBJECT) {
-                    $result = $this->unmarshallClass($value, $propertyType->getValue());
-                } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_ARRAY) {
-                    $subPropertyType = $propertyType->getValue();
-                    foreach ($value as $val) {
-                        if ($subPropertyType->getType() === PropertyTypeObject::TYPE_PRIMITIVE) {
-                            $result[] = $subPropertyType->getValue()->decodeValue($val);
-                        } else {
-                            $result[] = $this->unmarshallClass($val, $subPropertyType->getValue());
-                        }
-                    }
-                }
+                // Decode the result
+                $result = $this->decodeValue($value, $propertyType);
 
                 // Set our result into the class
                 if ($property->hasDirect()) {
@@ -186,6 +188,62 @@ class JsonMarshaller
         }
 
         return $newClass;
+    }
+
+    /**
+     * Decode a value into it's expected type
+     * @param mixed $value
+     * @param PropertyTypeObject $propertyType
+     * @return array|mixed|null
+     */
+    protected function decodeValue($value, PropertyTypeObject $propertyType)
+    {
+        $result = null;
+
+        // Decode the value into our result
+        if ($propertyType->getType() === PropertyTypeObject::TYPE_SCALAR) {
+            $result = $propertyType->getValue()->decodeValue($value);
+        } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_OBJECT) {
+            $result = $this->unmarshallClass($value, $propertyType->getValue());
+        } elseif ($propertyType->getType() === PropertyTypeObject::TYPE_ARRAY) {
+            $subPropertyType = $propertyType->getValue();
+            foreach ($value as $val) {
+                if ($subPropertyType->getType() === PropertyTypeObject::TYPE_SCALAR) {
+                    $result[] = $subPropertyType->getValue()->decodeValue($val);
+                } else {
+                    $result[] = $this->unmarshallClass($val, $subPropertyType->getValue());
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Create an instance of a new class
+     * @param string $classString
+     * @param ClassObject $decodedClass
+     * @param array $assocArray
+     * @return object
+     */
+    protected function createClass($classString, $decodedClass, $assocArray)
+    {
+        $constructorParams = $decodedClass->getConstructorParams();
+        if (count($constructorParams) === 0) {
+            return new $classString;
+        }
+
+        $decodedParams = [];
+        foreach ($constructorParams as $param) {
+            $val = null;
+            if (isset($assocArray[$param->getAnnotationName()])) {
+                $val = $this->decodeValue($assocArray[$param->getAnnotationName()], $param->getPropertyType());
+            }
+            $decodedParams[] = $val;
+        }
+
+        $reflectedClass = new \ReflectionClass($classString);
+        return $reflectedClass->newInstanceArgs($decodedParams);
     }
 
 }

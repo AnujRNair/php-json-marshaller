@@ -8,7 +8,7 @@ namespace PhpJsonMarshaller\Annotations;
  * @package PhpJsonMarshaller\Annotations
  * @Annotation
  */
-class MarshallConfig
+class MarshallConfig implements iMarshallAnnotation
 {
     /**
      * A property to allow us to skip unknown properties in a JSON string
@@ -35,13 +35,16 @@ class MarshallConfig
     }
 
     /**
-     * Sets the ignore unknown property
-     * @param boolean $ignoreUnknown if we can ignore unknown properties coming
-     * from the JSON string
+     * Verifies an annotation is valid
+     * @param array $params a list of params to validate, if needed
+     * @return bool
      */
-    public function setIgnoreUnknown($ignoreUnknown)
+    public function validate($params = [])
     {
-        $this->ignoreUnknown = $ignoreUnknown;
+        if (!$this->hasIgnoreUnknown()) {
+            throw new \InvalidArgumentException('@MarshallConfig needs an ignoreUnknown property set');
+        }
+        return true;
     }
 
 }

@@ -51,7 +51,7 @@ class ClassDecoderTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider missingPropertyExceptionProvider
-     * @expectedException \PhpJsonMarshaller\Exception\MissingPropertyException
+     * @expectedException \InvalidArgumentException
      * @param string $classString
      */
     public function testClassWithMissingProperty($classString)

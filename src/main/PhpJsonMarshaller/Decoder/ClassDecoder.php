@@ -3,13 +3,13 @@
 namespace PhpJsonMarshaller\Decoder;
 
 use PhpJsonMarshaller\Annotations\MarshallConfig;
+use PhpJsonMarshaller\Annotations\MarshallCreator;
 use PhpJsonMarshaller\Annotations\MarshallProperty;
 use PhpJsonMarshaller\Cache\Cache;
 use PhpJsonMarshaller\Decoder\Object\ClassObject;
 use PhpJsonMarshaller\Decoder\Object\PropertyObject;
 use PhpJsonMarshaller\Exception\ClassNotFoundException;
 use PhpJsonMarshaller\Exception\DuplicateAnnotationException;
-use PhpJsonMarshaller\Exception\MissingPropertyException;
 use PhpJsonMarshaller\Reader\DoctrineAnnotationReader;
 
 /**
@@ -74,7 +74,9 @@ class ClassDecoder
 
         // Decode public methods
         foreach ($reflectedClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            $this->decodeMethod($method, $properties);
+            if (!$this->decodeMethod($method, $properties)) {
+                $this->decodeConstructor($method, $classObject);
+            }
         }
 
         // Decode public properties
@@ -97,8 +99,8 @@ class ClassDecoder
      * Decodes a single method into a PropertyObject instance and adds to the properties array
      * @param \ReflectionMethod $method the reflected method to decode
      * @param PropertyObject[] $properties a reference to an array of decoded properties
+     * @return bool
      * @throws DuplicateAnnotationException
-     * @throws MissingPropertyException
      */
     protected function decodeMethod(\ReflectionMethod $method, &$properties)
     {
@@ -106,12 +108,9 @@ class ClassDecoder
         /** @var MarshallProperty $annotation */
         $annotation = $this->reader->getMethodAnnotation($method, '\PhpJsonMarshaller\Annotations\MarshallProperty');
         if (!$annotation) {
-            return;
+            return false;
         }
-
-        if (!$this->isAnnotationValid($annotation)) {
-            throw new MissingPropertyException('MarshallProperty needs a name and type defined');
-        }
+        $annotation->validate();
 
         if (!isset($properties[$annotation->getName()])) {
             $classDecoderProperty = new PropertyObject(
@@ -132,7 +131,7 @@ class ClassDecoder
             $classDecoderProperty->setSetter($methodName);
         } elseif ($subMethodName === 'get'
             || (substr($annotation->getType(), 0, 4) === 'bool'
-                && in_array(preg_replace('/' . $annotation->getName() . '$/i', '', $methodName), array('is', 'should', 'can', 'has'))
+                && in_array(preg_replace('/' . $annotation->getName() . '$/i', '', $methodName), ['is', 'should', 'can', 'has'])
             )
         ) {
             if ($classDecoderProperty->getGetter() !== null) {
@@ -142,14 +141,16 @@ class ClassDecoder
         }
 
         $properties[$annotation->getName()] = $classDecoderProperty;
+
+        return true;
     }
 
     /**
      * Decodes a single property into a PropertyObject instance and adds to the properties array
      * @param \ReflectionProperty $property a reflected property to decode
      * @param PropertyObject[] $properties a reference to an array of decoded properties
+     * @return bool
      * @throws DuplicateAnnotationException
-     * @throws MissingPropertyException
      */
     protected function decodeProperty(\ReflectionProperty $property, &$properties)
     {
@@ -157,12 +158,9 @@ class ClassDecoder
         /** @var MarshallProperty $annotation */
         $annotation = $this->reader->getPropertyAnnotation($property, '\PhpJsonMarshaller\Annotations\MarshallProperty');
         if (!$annotation) {
-            return;
+            return false;
         }
-
-        if (!$this->isAnnotationValid($annotation)) {
-            throw new MissingPropertyException('MarshallProperty needs a name and type defined');
-        }
+        $annotation->validate();
 
         if (!isset($properties[$annotation->getName()])) {
             $classDecoderProperty = new PropertyObject(
@@ -179,6 +177,39 @@ class ClassDecoder
         $classDecoderProperty->setDirect($property->getName());
 
         $properties[$annotation->getName()] = $classDecoderProperty;
+
+        return true;
+    }
+
+    /**
+     * Check if the class is a constructor. If so, and it has the MarshallCreator annotation, decode it
+     * @param \ReflectionMethod $method
+     * @param ClassObject $classObject
+     * @return bool
+     */
+    protected function decodeConstructor(\ReflectionMethod $method, &$classObject)
+    {
+        if (!$method->isConstructor()) {
+            return false;
+        }
+
+        /** @var MarshallCreator $annotation */
+        $annotation = $this->reader->getMethodAnnotation($method, '\PhpJsonMarshaller\Annotations\MarshallCreator');
+        if (!$annotation) {
+            return false;
+        }
+        $annotation->validate(['noRequiredParams' => $method->getNumberOfRequiredParameters()]);
+
+        $constructorParams = [];
+        foreach ($annotation->getParams() as $param) {
+            $constructorParams[] = new PropertyObject(
+                $param->getName(),
+                $param->getType()
+            );
+        }
+        $classObject->setConstructorParams($constructorParams);
+
+        return true;
     }
 
     /**
@@ -193,22 +224,12 @@ class ClassDecoder
         /** @var MarshallConfig $config */
         $config = $this->reader->getClassAnnotation($class, '\PhpJsonMarshaller\Annotations\MarshallConfig');
         if (isset($config)) {
-            if ($config->hasIgnoreUnknown()) {
+            if ($config->validate()) {
                 $classObject->setIgnoreUnknown($config->canIgnoreUnknown());
             }
         }
 
         return $classObject;
-    }
-
-    /**
-     * Verifies that the MarshallProperty annotation has all necessary properties set
-     * @param MarshallProperty $annotation
-     * @return bool
-     */
-    protected function isAnnotationValid(MarshallProperty $annotation)
-    {
-        return $annotation->getName() !== null && $annotation->getType() !== null;
     }
 
 }

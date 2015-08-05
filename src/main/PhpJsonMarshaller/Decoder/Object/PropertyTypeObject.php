@@ -11,7 +11,7 @@ use PhpJsonMarshaller\Type\iType;
 class PropertyTypeObject
 {
 
-    const TYPE_PRIMITIVE = 'primitive';
+    const TYPE_SCALAR = 'scalar';
     const TYPE_OBJECT = 'object';
     const TYPE_ARRAY = 'array';
 
@@ -51,14 +51,14 @@ class PropertyTypeObject
     protected function validate($type, $value)
     {
         // Check the type
-        if (!in_array($type, [self::TYPE_PRIMITIVE, self::TYPE_OBJECT, self::TYPE_ARRAY])) {
+        if (!in_array($type, [self::TYPE_SCALAR, self::TYPE_OBJECT, self::TYPE_ARRAY])) {
             if (is_object($type) || is_array($type)) {
                 throw new \InvalidArgumentException("Invalid type passed to the PropertyTypeObject class");
             }
             throw new \InvalidArgumentException("Type: $type is not a valid argument for the PropertyTypeObject class");
         }
 
-        // Check the value is an iType (primitives), a PropertyTypeObject (array), or a string (objects)
+        // Check the value is an iType (scalar), a PropertyTypeObject (array), or a string (objects)
         if (!($value instanceof iType || $value instanceof PropertyTypeObject || is_string($value))) {
             if (is_object($value) || is_array($value)) {
                 throw new \InvalidArgumentException("Invalid type passed to the PropertyTypeObject class");

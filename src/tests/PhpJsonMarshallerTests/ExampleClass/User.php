@@ -62,6 +62,13 @@ class User
 
 
     /**
+     * Empty constructor to show we can have one
+     */
+    public function __construct()
+    {
+    }
+
+    /**
      * @return int
      * @MarshallProperty(name="id", type="int")
      */

@@ -1,6 +1,6 @@
 {
     "name": "anujrnair/php-json-marshaller",
-    "description": "A library to marshall and unmarshall json strings to php classes",
+    "description": "A library to marshall and unmarshall JSON string to populated PHP classes",
     "authors": [
         {
             "name": "Anuj Nair",

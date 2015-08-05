@@ -221,16 +221,16 @@ class PropertyObject
             switch (strtolower($type)) {
                 case 'integer':
                 case 'int':
-                    return new PTO(PTO::TYPE_PRIMITIVE, new IntType());
+                    return new PTO(PTO::TYPE_SCALAR, new IntType());
                 case 'boolean':
                 case 'bool':
-                    return new PTO(PTO::TYPE_PRIMITIVE, new BoolType());
+                    return new PTO(PTO::TYPE_SCALAR, new BoolType());
                 case 'string':
-                    return new PTO(PTO::TYPE_PRIMITIVE, new StringType());
+                    return new PTO(PTO::TYPE_SCALAR, new StringType());
                 case 'float':
-                    return new PTO(PTO::TYPE_PRIMITIVE, new FloatType());
+                    return new PTO(PTO::TYPE_SCALAR, new FloatType());
                 case 'datetime':
-                    return new PTO(PTO::TYPE_PRIMITIVE, new DateTimeType());
+                    return new PTO(PTO::TYPE_SCALAR, new DateTimeType());
                 default:
                     // Guessing it's an object
                     return new PTO(PTO::TYPE_OBJECT, $type);

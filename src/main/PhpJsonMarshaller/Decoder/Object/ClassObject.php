@@ -23,6 +23,12 @@ class ClassObject
      */
     protected $ignoreUnknown = true;
 
+    /**
+     * An aarray of decoded parameters which are needed to instantiate the class
+     * @var PropertyObject[] $constructorParams
+     */
+    protected $constructorParams = array();
+
 
     /**
      * Return all PropertyObjects from the class
@@ -80,5 +86,21 @@ class ClassObject
     public function setIgnoreUnknown($ignoreUnknown)
     {
         $this->ignoreUnknown = $ignoreUnknown;
+    }
+
+    /**
+     * @return PropertyObject[]
+     */
+    public function getConstructorParams()
+    {
+        return $this->constructorParams;
+    }
+
+    /**
+     * @param PropertyObject[] $constructorParams
+     */
+    public function setConstructorParams($constructorParams)
+    {
+        $this->constructorParams = $constructorParams;
     }
 }

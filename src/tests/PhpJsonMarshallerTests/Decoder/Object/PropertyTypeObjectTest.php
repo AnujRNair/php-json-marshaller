@@ -33,7 +33,7 @@ class PropertyTypeObjectTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidNameParameter($data)
     {
-        new PropertyTypeObject(PropertyTypeObject::TYPE_PRIMITIVE, $data);
+        new PropertyTypeObject(PropertyTypeObject::TYPE_SCALAR, $data);
     }
 
 }

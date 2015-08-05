@@ -132,7 +132,7 @@ $user->getAddress()->getStreet(); // (string) "123 Main Street"
 Arrays of Objects
 -------------------
 
-You can marshall and unmarshall arrays of primitives/objects by indicating so in the type of the MarshallProperty annotation:
+You can marshall and unmarshall arrays of scalars/objects by indicating so in the type of the MarshallProperty annotation:
 
 ```php
 class User
@@ -174,6 +174,41 @@ $user = $marshaller->unmarshall($json, '\My\Example\User');
 // Use the data
 $user->getFlags()[0]->getId(); // (int) 11087
 ```
+
+Unmarshalling into Objects with a Constructor
+-------------------
+
+To unmarshall into an object with a constructor, with required params, use the @MarshallCreator annotation to describe to the marshaller which values to instantiate the class with.
+
+This Annotation takes an array of @MarshallProperty objects like the following:
+
+```php
+class User
+{
+
+    /**
+     * @var int $id
+     */
+    protected $id;
+
+    /**
+     * @var float $rank
+     */
+    protected $rank;
+
+    /**
+     * @MarshallCreator({@MarshallProperty(name="id", type="int"), @MarshallProperty(name="rank", type="float")})
+     */
+    public function __construct($id, $rank)
+    {
+        $this->id = $id;
+        $this->rank = $rank;
+    }
+
+}
+```
+
+The marshaller will then look for these values in the json string passed to it (The same level on which the class was instantiated) and instantiate the object with these values.
 
 Caching
 -------------------

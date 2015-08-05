@@ -9,7 +9,7 @@ namespace PhpJsonMarshaller\Annotations;
  * @package PhpJsonMarshaller\Annotations
  * @Annotation
  */
-class MarshallProperty
+class MarshallProperty implements iMarshallAnnotation
 {
 
     /**
@@ -36,15 +36,6 @@ class MarshallProperty
     }
 
     /**
-     * Set the name of the JSON key
-     * @param string $name the value of the name param in the annotation
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-    }
-
-    /**
      * Get the expected type of the JSON property
      * @return string
      */
@@ -54,12 +45,16 @@ class MarshallProperty
     }
 
     /**
-     * Set the expected type of the JSON property
-     * @param string $type the value of the type param in the annotation
+     * Verifies an annotation is valid
+     * @param array $params a list of params to validate, if needed
+     * @return bool
      */
-    public function setType($type)
+    public function validate($params = [])
     {
-        $this->type = $type;
+        if ($this->getName() === null || $this->getType() === null) {
+            throw new \InvalidArgumentException('@MarshallProperty needs a name and type defined');
+        }
+        return true;
     }
 
 }

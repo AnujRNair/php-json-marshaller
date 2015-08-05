@@ -9,6 +9,7 @@ use PhpJsonMarshaller\Marshaller\JsonMarshaller;
 use PhpJsonMarshaller\Reader\DoctrineAnnotationReader;
 use PhpJsonMarshallerTests\ExampleClass\Address;
 use PhpJsonMarshallerTests\ExampleClass\Flag;
+use PhpJsonMarshallerTests\ExampleClass\MethodConstructor;
 use PhpJsonMarshallerTests\ExampleClass\PropertyNone;
 use PhpJsonMarshallerTests\ExampleClass\User;
 use PhpJsonMarshallerTests\ExampleClass\UserAlternate;
@@ -58,6 +59,15 @@ class JsonMarshallerTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    public function invalidConstructorClassProvider()
+    {
+        return [
+            ['PhpJsonMarshallerTests\ExampleClass\MethodConstructorIncomplete'],
+            ['PhpJsonMarshallerTests\ExampleClass\MethodConstructorMissingParams'],
+            ['PhpJsonMarshallerTests\ExampleClass\MethodConstructorPropertyIncomplete']
+        ];
+    }
+
     /**
      * @dataProvider emptyStringDataProvider
      * @param $input
@@ -101,6 +111,14 @@ class JsonMarshallerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testUnmarshallFailOnIncompleteConfig()
+    {
+        $this->marshaller->unmarshall($this->basicKeyValue, 'PhpJsonMarshallerTests\ExampleClass\ClassConfigMissing');
+    }
+
+    /**
      * @expectedException \PhpJsonMarshaller\Exception\InvalidTypeException
      */
     public function testUnmarshallInvalidType()
@@ -134,6 +152,27 @@ class JsonMarshallerTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($json['id'], $user->id);
         $this->assertSame($json['address']['id'], $user->address->id);
         $this->assertSame($json['flags'][0]['id'], $user->flags[0]->id);
+    }
+
+    public function testUnmarshallWithConstructor()
+    {
+        $json = json_decode($this->basicKeyValue, true);
+
+        /** @var MethodConstructor $constructorClass */
+        $constructorClass = $this->marshaller->unmarshall($this->basicKeyValue, 'PhpJsonMarshallerTests\ExampleClass\MethodConstructor');
+
+        $this->assertEquals($json['id'], $constructorClass->getId());
+        $this->assertEquals($json['rank'], $constructorClass->getRank());
+    }
+
+    /**
+     * @dataProvider invalidConstructorClassProvider
+     * @expectedException \InvalidArgumentException
+     * @param $data
+     */
+    public function testUnmarshallWithInvalidConstructor($data)
+    {
+        $this->marshaller->unmarshall($this->basicKeyValue, $data);
     }
 
     /**

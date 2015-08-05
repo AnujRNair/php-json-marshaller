@@ -17,10 +17,6 @@
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./src/main/</directory>
-            <exclude>
-                <directory suffix=".php">./src/main/PhpJsonMarshaller/Annotations/</directory>
-                <directory suffix=".php">./src/main/PhpJsonMarshaller/Exception/</directory>
-            </exclude>
         </whitelist>
     </filter>
 
