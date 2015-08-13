@@ -257,4 +257,4 @@ Please ensure you have the memcached daemon running to ensure the `MemcachedStor
 License
 -------------------
 
-Feel free to use wherever, however.
+Please see the [License](LICENSE.md)
