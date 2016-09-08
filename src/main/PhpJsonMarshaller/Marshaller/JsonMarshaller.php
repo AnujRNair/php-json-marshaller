@@ -44,12 +44,13 @@ class JsonMarshaller
     /**
      * Marshall an object into a json string
      * @param mixed $class the class object to marshall
+     * @param boolean $encode whether to json encode the result or not
      * @return string the json string
      * @throws JsonDecodeException
      */
-    public function marshall($class)
+    public function marshall($class, $encode = true)
     {
-        return $this->marshallClass($class, true);
+        return $this->marshallClass($class, $encode);
     }
 
     /**
