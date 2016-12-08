@@ -64,6 +64,10 @@ class User
 Once you have configured your class, load an instance of the JSONMarshaller class, and call the marshall or unmarshall function:
 
 ```php
+use PhpJsonMarshaller\Decoder\ClassDecoder;
+use PhpJsonMarshaller\Marshaller\JsonMarshaller;
+use PhpJsonMarshaller\Reader\DoctrineAnnotationReader;
+
 $json = '{
     "id": 12345,
     "name": "Anuj"
@@ -110,6 +114,10 @@ class User
 And then in your code:
 
 ```php
+use PhpJsonMarshaller\Decoder\ClassDecoder;
+use PhpJsonMarshaller\Marshaller\JsonMarshaller;
+use PhpJsonMarshaller\Reader\DoctrineAnnotationReader;
+
 $json = '{
     "id": 12345,
     "name": "Anuj",
@@ -150,6 +158,10 @@ class User
 Then in your code:
 
 ```php
+use PhpJsonMarshaller\Decoder\ClassDecoder;
+use PhpJsonMarshaller\Marshaller\JsonMarshaller;
+use PhpJsonMarshaller\Reader\DoctrineAnnotationReader;
+
 $json = '{
     "id": 12345,
     "name": "Anuj",
@@ -218,6 +230,12 @@ You can cache decoded classes for performance boosts. This will _not_ cache data
 To do so, instantiate an instance of the `Cache` class, and pass in a storage type. Then pass this through to the `ClassDecoder` instance:
 
 ```php
+use PhpJsonMarshaller\Cache\Cache;
+use PhpJsonMarshaller\Cache\Storage\InMemoryStorage;
+use PhpJsonMarshaller\Decoder\ClassDecoder;
+use PhpJsonMarshaller\Marshaller\JsonMarshaller;
+use PhpJsonMarshaller\Reader\DoctrineAnnotationReader;
+
 $marshaller = new JsonMarshaller(
     new ClassDecoder(
         new DoctrineAnnotationReader(),
