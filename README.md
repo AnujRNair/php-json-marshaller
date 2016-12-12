@@ -26,6 +26,8 @@ The MarshallProperty annotation requires a name and type, otherwise an exception
 You can do this on any public property or method.
 
 ```php
+use PhpJsonMarshaller\Annotations\MarshallProperty;
+
 class User
 {
 
@@ -99,6 +101,8 @@ Nesting Objects
 You can also nest classes within classes for recursive marshalling and unmarshalling like so:
 
 ```php
+use PhpJsonMarshaller\Annotations\MarshallProperty;
+
 class User
 {
 
@@ -143,6 +147,8 @@ Arrays of Objects
 You can marshall and unmarshall arrays of scalars/objects by indicating so in the type of the MarshallProperty annotation:
 
 ```php
+use PhpJsonMarshaller\Annotations\MarshallProperty;
+
 class User
 {
 
@@ -195,6 +201,9 @@ To unmarshall into an object with a constructor, with required params, use the @
 This Annotation takes an array of @MarshallProperty objects like the following:
 
 ```php
+use PhpJsonMarshaller\Annotations\MarshallCreator;
+use PhpJsonMarshaller\Annotations\MarshallProperty;
+
 class User
 {
 
@@ -254,6 +263,8 @@ Unknown Entries
 You can specifically allow a class to fail on any unknown json variables by adding a MarshallConfig annotation to a specific class:
 
 ```php
+use PhpJsonMarshaller\Annotations\MarshallConfig;
+
 /**
  * @MarshallConfig(ignoreUnknown=false)
  */
